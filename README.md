@@ -188,3 +188,35 @@ make migrate-down
 # run all migrations. 
 make migrate-reset
 ```
+
+### Managing Configurations
+
+The application configuration is represented in `internal/config/config.go`. When the application starts,
+it loads the configuration from a configuration file as well as environment variables. The path to the configuration 
+file is specified via the `-config` command line argument which defaults to `./config/local.yml`. Configurations
+specified in environment variables should be named with the `APP_` prefix and in upper case. When a configuration
+is specified in both a configuration file and an environment variable, the latter takes precedence. 
+
+The `config` directory contains the configuration files named after different environments. For example,
+`config/local.yml` corresponds to the local development environment and is used when running the application 
+via `make run`.
+
+Do not keep secrets in the configuration files. Provide them via environment variables instead. For example,
+you should provide `Config.DSN` using the `APP_DSN` environment variable. Secrets can be populated from a secret
+storage (e.g. HashiCorp Vault) into environment variables in a bootstrap script (e.g. `cmd/server/entryscript.sh`). 
+
+## Deployment
+
+The application can be run as a docker container. You can use `make build-docker` to build the application 
+into a docker image. The docker container starts with the `cmd/server/entryscript.sh` script which reads 
+the `APP_ENV` environment variable to determine which configuration file to use. For example,
+if `APP_ENV` is `qa`, the application will be started with the `config/qa.yml` configuration file.
+
+You can also run `make build` to build an executable binary named `server`. Then start the API server using the following
+command,
+
+```shell
+./server -config=./config/prod.yml
+```
+
+```
